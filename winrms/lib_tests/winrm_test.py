@@ -31,7 +31,7 @@ def get_connection():
 
 def start_service(conn, shell_id, service_name):
 
-    script = 'Start-Service' + service_name
+    script = 'Start-Service ' + service_name
 
     # base64 encode, utf16 little endian. required for windows
     encoded_script = base64.b64encode(script.encode("utf_16_le"))
@@ -111,4 +111,26 @@ def do_stuff():
     write_out_file(conn, shell_id)
     delete_file(conn, shell_id)
 
-do_stuff()
+def list_service_data(conn, shell_id, service_name):
+    script = """$service = Get-WmiObject -ComputerName $env:computername -Class Win32_Service `
+-Filter "Name='""" + service_name + """'"
+$service
+$service | Get-Member -Type Method"""
+
+    print script
+    run_script(conn, shell_id, script)
+
+def run_script(conn, shell_id, script):
+    # base64 encode, utf16 little endian. required for windows
+    encoded_script = base64.b64encode(script.encode("utf_16_le"))
+
+    # send the script to powershell, tell it the script is encoded
+    command_id = conn.run_command(shell_id, "powershell -encodedcommand %s" % (encoded_script))
+    stdout, stderr, return_code = conn.get_command_output(shell_id, command_id)
+    conn.cleanup_command(shell_id, command_id)
+    print "STDOUT: %s" % (stdout)
+    print "STDERR: %s" % (stderr)
+
+conn1, shell_id1 = get_connection()
+# start_service(conn1, shell_id1, 'SkypeUpdate')
+list_service_data(conn1, shell_id1, 'SkypeUpdate')
