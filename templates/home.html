@@ -1,7 +1,32 @@
-{{ data }}
+<h1>Service name given</h1>
+<p>
+    {{ service_name|linebreaks }}
+</p>
 
-<form method="get" action="{% url 'write_file' %}">
-    <label for="to_write">Write file content</label>
-    <input type="text" id="to_write" name="to_write">
+<hr>
+
+<h1>Script Run</h1>
+<p>
+    {{ script|linebreaks }}
+</p>
+
+<hr>
+
+<h1>STD OUT</h1>
+<p>
+    {{ stdout|linebreaks }}
+</p>
+
+<hr>
+
+<h1>STD ERR</h1>
+<p>
+    {{ stderr|linebreaks }}
+</p>
+<hr>
+
+<form method="get" action="{% url 'service_info' %}">
+    <label for="service_name">Get service info</label>
+    <input type="text" id="service_name" name="service_name">
     <input type="submit">
 </form>

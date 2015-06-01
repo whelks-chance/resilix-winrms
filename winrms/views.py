@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.template import RequestContext
-from winrms.lib_tests.winrm_test import write_a_file
+from winrms.lib_tests.winrm_test import *
 
 
 def index(request):
@@ -11,9 +11,16 @@ def index(request):
 
 def do_thing(text):
     print text
-    write_a_file(text)
+    conn, shell_id = get_connection()
+    stdout, stderr, script = list_service_data(conn, shell_id, text)
+    return stdout, stderr, script
 
-
-def write_file(request):
-    do_thing(request.GET.get('to_write', 'failed'))
-    return index(request)
+def service_info(request):
+    service_name = request.GET.get('service_name', 'MISSING_FIELD')
+    stdout, stderr, script = do_thing(service_name)
+    return render(request, 'home.html', {
+        'service_name': service_name,
+        'stdout': stdout,
+        'stderr': stderr,
+        'script': script
+    }, context_instance=RequestContext(request))

@@ -117,13 +117,13 @@ def list_service_data(conn, shell_id, service_name):
 -Filter "Name='""" + service_name + """'"
 $service
 $service | Get-Member -Type Method
-$pid = $service | select -expand ProcessId
-$pid
-(Get-Process -id $pid).StartInfo | select -ExpandProperty environmentvariables
+$pid_for_service = $service | select -expand ProcessId
+$pid_for_service
+(Get-Process -id $pid_for_service).StartInfo | select -ExpandProperty environmentvariables
 """
+    stdout, stderr = run_script(conn, shell_id, script)
 
-    print script
-    run_script(conn, shell_id, script)
+    return stdout, stderr, script
 
 def run_script(conn, shell_id, script):
     # base64 encode, utf16 little endian. required for windows
@@ -136,7 +136,9 @@ def run_script(conn, shell_id, script):
     print "STDOUT: %s" % (stdout)
     print "STDERR: %s" % (stderr)
 
-conn1, shell_id1 = get_connection()
-# do_stuff()
-start_service(conn1, shell_id1, 'SkypeUpdate')
-list_service_data(conn1, shell_id1, 'SkypeUpdate')
+    return stdout, stderr
+
+# conn1, shell_id1 = get_connection()
+# # do_stuff()
+# start_service(conn1, shell_id1, 'SkypeUpdate')
+# list_service_data(conn1, shell_id1, 'SkypeUpdate')

@@ -19,7 +19,7 @@ from winrms import views
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-    url(r'^write_file', views.write_file, name='write_file'),
+    url(r'^service_info', views.service_info, name='service_info'),
 
     url(r'^admin/', include(admin.site.urls))
 ]
