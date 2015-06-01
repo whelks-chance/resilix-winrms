@@ -112,10 +112,15 @@ def do_stuff():
     delete_file(conn, shell_id)
 
 def list_service_data(conn, shell_id, service_name):
+
     script = """$service = Get-WmiObject -ComputerName $env:computername -Class Win32_Service `
 -Filter "Name='""" + service_name + """'"
 $service
-$service | Get-Member -Type Method"""
+$service | Get-Member -Type Method
+$pid = $service | select -expand ProcessId
+$pid
+(Get-Process -id $pid).StartInfo | select -ExpandProperty environmentvariables
+"""
 
     print script
     run_script(conn, shell_id, script)
@@ -132,5 +137,6 @@ def run_script(conn, shell_id, script):
     print "STDERR: %s" % (stderr)
 
 conn1, shell_id1 = get_connection()
-# start_service(conn1, shell_id1, 'SkypeUpdate')
+# do_stuff()
+start_service(conn1, shell_id1, 'SkypeUpdate')
 list_service_data(conn1, shell_id1, 'SkypeUpdate')
