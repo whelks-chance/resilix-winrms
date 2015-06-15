@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from resilix import settings
 
 __author__ = 'ian'
@@ -5,6 +7,7 @@ __author__ = 'ian'
 
 from winrm import Protocol
 import base64
+
 
 def get_connection():
     # address = "localhost"
@@ -29,6 +32,7 @@ def get_connection():
 
     return conn, shell_id
 
+
 def start_service(conn, shell_id, service_name):
 
     script = 'Start-Service ' + service_name
@@ -42,6 +46,7 @@ def start_service(conn, shell_id, service_name):
     conn.cleanup_command(shell_id, command_id)
     print "STDOUT: %s" % (stdout)
     print "STDERR: %s" % (stderr)
+
 
 def write_file(conn, shell_id):
     # the text file we want to send
@@ -89,6 +94,7 @@ def write_file(conn, shell_id):
     print "STDOUT: %s" % (stdout)
     print "STDERR: %s" % (stderr)
 
+
 def write_out_file(conn, shell_id):
     # print the file
     command_id = conn.run_command(shell_id, "type test.txt")
@@ -96,6 +102,7 @@ def write_out_file(conn, shell_id):
     conn.cleanup_command(shell_id, command_id)
     print "STDOUT: %s" % (stdout)
     print "STDERR: %s" % (stderr)
+
 
 def delete_file(conn, shell_id):
     # delete the file
@@ -105,11 +112,13 @@ def delete_file(conn, shell_id):
     print "STDOUT: %s" % (stdout)
     print "STDERR: %s" % (stderr)
 
+
 def do_stuff():
     conn, shell_id = get_connection()
     write_file(conn, shell_id)
     write_out_file(conn, shell_id)
     delete_file(conn, shell_id)
+
 
 def list_service_data(conn, shell_id, service_name):
 
@@ -125,6 +134,41 @@ $pid_for_service
 
     return stdout, stderr, script
 
+
+def list_pcs(conn, shell_id, service_name):
+
+    scripts = [
+        """get-service""",
+        """$PSVersionTable.PSVersion""",
+        """Get-ADComputer -Filter * -Property * |
+        Format-Table Name,OperatingSystem,OperatingSystemServicePack,OperatingSystemVersion -Wrap -Auto""",
+        """Test-WsMan DC01""",
+        """Test-WsMan EX01""",
+        """$password = ConvertTo-SecureString "Viavmops1" -AsPlainText -Force
+        $cred= New-Object System.Management.Automation.PSCredential ("AD\Administrator", $password )
+        $session = New-PSSession -ComputerName EX01 -Credential $cred
+        Invoke-Command -Session $session -ScriptBlock { hostname }"""
+
+    ]
+
+    outputs = []
+    stdout = ''
+    stderr = ''
+    for script in scripts:
+        stdout1, stderr1 = run_script(conn, shell_id, script)
+        outputs.append({
+            'stdout': stdout1,
+            'stderr': stderr1
+        })
+
+        stdout += stdout1 + '\n\n'
+
+        if len(stderr1.strip()):
+            stderr += script + stderr1 + '\n\n'
+
+    return stdout, stderr, '\n'.join(scripts)
+
+
 def run_script(conn, shell_id, script):
     # base64 encode, utf16 little endian. required for windows
     encoded_script = base64.b64encode(script.encode("utf_16_le"))
@@ -138,7 +182,7 @@ def run_script(conn, shell_id, script):
 
     return stdout, stderr
 
-# conn1, shell_id1 = get_connection()
-# # do_stuff()
-# start_service(conn1, shell_id1, 'SkypeUpdate')
-# list_service_data(conn1, shell_id1, 'SkypeUpdate')
+    # conn1, shell_id1 = get_connection()
+    # # do_stuff()
+    # start_service(conn1, shell_id1, 'SkypeUpdate')
+    # list_service_data(conn1, shell_id1, 'SkypeUpdate')
